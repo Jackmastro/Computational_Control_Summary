@@ -1,0 +1,302 @@
+\begin{mdframed}[backgroundcolor=red!20, frametitlerulewidth=0pt, innertopmargin=-2mm, innerbottommargin=2mm, skipabove=0mm]
+
+\section{System ID \& Data-enabled Predictive Control DeePC}
+\end{mdframed}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=green!50!black, colback=green!5!white, title=Pros, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Model-free
+        \item More robust on noise
+        \item No state estimator needed
+        \item Many uses for predictor: filtering, control, recover missing data, prediction/simulation
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=red!50!black, colback=red!5!white, title=Cons, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Computationally complex: $2n+K$ decision variables
+        \item Larger memory footprint: data
+        \item Based on LTI systems
+        \item Mobel-based better if a state is known
+        \item SysID incorporates available system info
+        \item Hard and expensive to get data
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=gray!50!black, colback=gray!5!white, title=Examples, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Temperature regulation
+        \item Smart grid
+        \item Medical devices
+        \item Trading, price prediction and optimization
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+
+\subsection{System Identification SysID}
+Goal: find \textbf{minimal} (controllable \& observable) \textbf{realization} (state-space representation) given input-output data (not unique!).\\ \\
+\begin{minipage}{0.43\textwidth}
+    \begin{align*}
+        x_k &= \underbrace{A^k x_0}_{\text{free response}} + \underbrace{\sum_{j=0}^{k-1} A^{k-1-j} B u_j + \sum_{i=0}^{k-1} A^{k-1-i} D_w w_i}_{\text{convolution}} \\
+        y_k &= Cx_k + \underbrace{D u_k}_{\text{feedthrough}}
+    \end{align*}
+\end{minipage}
+\begin{minipage}{0.53\textwidth}
+    \begin{itemize}
+    \item For a LTI, the impulse response is a complete representation of the input-output relation, as we can combine responses (superposition).
+    \item \textcolor{blue}{\textbf{Markov Parameters}}: sequence of $\stabilo{CA^{k-1}B} \in \mathbb{R}^{p \times m} \quad k > 0$ where each element represent the output $i$ to an unit impulse on input $j$.
+    \item At least $m$ impulse experiments are necessary to estimate them (needed to get matrix $B$).
+    \end{itemize}
+\end{minipage}
+
+\subsubsection{Reachability - Controllability}
+Investigate all states that can be reached at time $\tau$ starting at $x(0)=0$.
+\begin{equation*}
+    \stabilo{\mathcal{C}_n = [B \; AB \; A^2B \; A^3B \; \ldots \; A^{n-1}B ]} \quad \in \mathbb{R}^{n \times n} \qquad \text{Reachable: full row rank} \Leftrightarrow \text{rank}(\mathcal{C}_n)=n 
+\end{equation*}
+\begin{itemize}
+    \item For linear-continuous time: set of reachable states = set of controllable states. \\
+    System is completely reachable $\Rightarrow$ System completely controllable. 
+    \item Differences between controllability and reachability: 
+    \begin{itemize}
+        \item \textbf{Compl. controllable}: may be kept to the origin, starting at any initial condition.
+        \item  \textbf{Compl. reachable}: can only be brought to a certain point $x(T)$, but cannot be forced to stay there for $t>T$.
+    \end{itemize}
+\end{itemize}
+\textbf{Considerations}
+\begin{itemize}
+    \item Scalar input creates column vector matrices $A, AB,\ldots \Rightarrow$ need $n$ steps for full rank
+    \item Compl. controllable in less than $n$, if input $u$ is \textbf{not} scalar.
+    \item Not compl. controllable in $n$ steps $\Rightarrow$ more steps won't help (linearly dep. on previous ones)
+    \item Input sequence to reach target state $x_n = \mathcal{C}_n\begin{bmatrix}
+    u_{n-1} \\
+    \vdots \\
+    u_0
+    \end{bmatrix}$ if $\begin{cases} 
+        \text{invertible} &\mathcal{C}_n^{-1} \\ 
+        \text{non-invertible} &\mathcal{C}_n^T(\mathcal{C}_n\mathcal{C}_n^T)^{-1} \quad (\text{smallest norm})
+        \end{cases}$ 
+\end{itemize}
+
+\subsubsection{Observability}
+Reconstruct the initial condition $x(0)$ by analyzing only the output $y(t)$.
+\begin{equation*}
+    \stabilo{\mathcal{O}_n =
+    \begin{bsmallmatrix}
+    C \\ CA \\ CA^2 \\ \vdots \\ CA^{n-1}
+    \end{bsmallmatrix}} \quad \in \mathbb{R}^{n \times n}
+    \qquad \text{Observable: full column rank} \Leftrightarrow \text{rank}(\mathcal{O}_n) = n 
+\end{equation*}
+\textbf{Considerations}
+\begin{itemize}
+    \item Scalar input creates row vector matrices $C, CA,\ldots \Rightarrow$ need $n$ steps for full rank
+    \item Compl. observable in less than $n$, if input $u$ is \textbf{not} scalar
+    \item Not observable in $n$ steps $\Rightarrow$ more steps won't help (linearly dep. on previous ones)
+    \item Initial state to produce target output sequence $\begin{bmatrix}
+    y_0 \\
+    \vdots \\
+    y_{L-1}
+    \end{bmatrix} = \mathcal{O}_L x_0$ if $\begin{cases} 
+        L<n \text{ non-inv.} &\mathcal{O}_L^T(\mathcal{O}_L\mathcal{O}_L^T)^{-1} \quad (\text{smallest norm}) \\ 
+        L=n \text{ invertible} &\mathcal{O}_n^{-1} \\ 
+        L>n \text{ overdet.} & \text{not all } y \text{ are valid}
+        
+        \end{cases}$ 
+\end{itemize}
+
+\subsubsection{Hankel Matrix}
+Hankel matrix composed of Markov parameters: $\stabilo{\mathcal{H} = \mathcal{O}\mathcal{C}}$ \\
+\textbf{Ho-Kalman algorithm} (extended):
+\begin{enumerate}
+    \item Construct $\mathcal{H}_{k,l}$:
+    \begin{itemize}
+        \item Collect impulse responses as Markov parameters
+    \item Estimate $k,l > n$: stop adding Markov parameters once rank $n$ is reached (rank $\mathcal{O}$ and $\mathcal{C}$ is $n$ such that they are compl. observable and controllable and automatically rank $\mathcal{H}$ is $n$)
+    \end{itemize}
+    \item Factorize $\mathcal{H}_{k,l}$ in $\mathcal{O}_k\mathcal{C}_l$:
+    \begin{itemize}
+        \item SVD: \quad $\mathcal{H}_{k,\ell} = 
+        \begin{bmatrix}
+        \color{red}{\mathbf{U}_1} & \mathbf{U}_2
+        \end{bmatrix}
+        \begin{bmatrix}
+        \color{red}{\Sigma_1} & 0_{r \times n-r} \\
+        0_{m-r \times r} & 0_{m-r \times n-r}
+        \end{bmatrix}
+        \begin{bmatrix}
+        \color{blue}{\mathbf{V}_1} \\ \mathbf{V}_2
+        \end{bmatrix}^{\top}
+        = \mathbf{U}_1 \Sigma_1 \mathbf{V}_1^{\top}$ \qquad $U \in \mathbb{R}^{m\times m}$, $V \in \mathbb{R}^{n\times n}$
+        \item $\mathcal{H}_{k,l} = \underbrace{\mathbf{U}_1 \Sigma_1^{1/2}}_{\textcolor{ForestGreen}{\mathcal{O}_k}} \underbrace{\Sigma_1^{1/2} \mathbf{V}_1^{\top}}_{\textcolor{orange}{\mathcal{C}_{l}}}$
+        \item Shift $\mathcal{H}_{k,l}^\uparrow$ to get A
+    \end{itemize}
+    \item Derive $A,B,C$: \quad $A = \mathcal{O}_k^\dagger\mathcal{H}_{k,l}^\uparrow\mathcal{C}_l^\dagger$ \qquad $B$ from $\textcolor{orange}{\mathcal{C}_l}$ \qquad $C$ from $\textcolor{ForestGreen}{\mathcal{O}_k}$
+\end{enumerate}
+
+\hrule
+
+\subsection{Behavioral Representation}
+\begin{minipage}{0.68\textwidth}
+    \[
+        \begin{bmatrix}
+        y_0 \\
+        y_1 \\
+        y_2 \\
+        \vdots \\
+        y_{L-1}
+        \end{bmatrix}
+        =
+        \underbrace{
+        \begin{bmatrix}
+        C \\
+        CA \\
+        CA^2 \\
+        \vdots \\
+        CA^{L-1}
+        \end{bmatrix}
+        }_{\mathcal{O}_L \in \mathbb{R}^{Lp \times n}}
+        x_0
+        +
+        \underbrace{
+        \begin{bmatrix}
+        0 & 0 & \cdots & 0 \\
+        CB & 0 & \cdots & 0 \\
+        CAB & CB & \cdots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        CA^{L-2}B & CA^{L-3}B & \cdots & CB & 0
+        \end{bmatrix}
+        }_{\mathcal{G}_L \in \mathbb{R}^{Lp \times Lm}}
+        \begin{bmatrix}
+        u_0 \\
+        u_1 \\
+        u_2 \\
+        \vdots \\
+        u_{L-1}
+        \end{bmatrix}
+    \]
+\end{minipage}
+\begin{minipage}{0.28\textwidth}
+    $\mathcal{O}_L$: extended observability matrix \\
+    (free evolution of the system) \\
+    $\mathcal{G}_L$: convolution matrix
+    (forced evolution of the system)
+\end{minipage}\\ \\
+\textbullet \; $\textbf{y}_L - \mathcal{G}_L \textbf{u}_L = \mathcal{O}_L x_0$ \quad solved if $\textbf{y}_L - \mathcal{G}_L \textbf{u}_L$ is in the \textbf{column image} of $\mathcal{O}_L$: $\begin{cases} 
+    Lm<n &\text{underdetermined} \\ 
+    Lm=n &\text{ invertible}: x_0 = \mathcal{O}_n^{-1} (\textbf{y}_n - \mathcal{G}_n \textbf{u}_n) \\ 
+    Lm>n &\text{ overdetermined}
+\end{cases}$\\
+\textbullet \; for $Lm > n$: $\mathbf{y}_L - \mathcal{G}_L \mathbf{u}_L$ \; needs to belong to a \textbf{subspace} spanned by $\mathcal{O}_L$ \\
+    \textbullet \; All I/O trajectories ($\textbf{u}_L, \textbf{y}_L$) belong to 
+    $\begin{array}{ll}
+        \text{the \textbf{column image} of } \Lambda_L \\
+        \text{a \textbf{subspace} of dimension } Lm + n 
+    \end{array}$: \quad
+    $\stabilo{\begin{bmatrix}
+    \mathbf{u}_L \\
+    \mathbf{y}_L
+    \end{bmatrix}
+    =
+    \underbrace{
+    \begin{bmatrix}
+    I_{Lm} & \mathbf{0}_{Lm \times n} \\
+    \mathcal{G}_L & \mathcal{O}_L
+    \end{bmatrix}
+    }_{\Lambda_L \in \mathbb{R}^{L(p+m) \times Lm+n}}
+    \begin{bmatrix}
+    \mathbf{u}_L \\
+    x_0
+    \end{bmatrix}} = \mathcal{H} \textbf{g}$ \\
+\textbullet \; $\Lambda_L$ fully describes the system (I/O sequence compatible with the plant $= x_0$ such that $\ldots$)\\
+$\rightarrow$ columns of $\Lambda_L$ are a basis of the subspace. \\
+$\rightarrow$ columns of $\mathcal{H}$ are a basis of the subspace, with $\stabilo{\mathbf{g} \in \mathbb{R}^{Lm+n}}$ being a vector of coefficients.
+
+\newpage
+
+\subsubsection{Relations}
+\begin{itemize}
+    \item $\boxed{T_\mathrm{ini} = T_\mathrm{past}}$ length of the past data points used to initialize the problem $\begin{cases}
+            \text{For SISO:} & T_\mathrm{ini} \geq n \\
+            \text{For MIMO:} & T_\mathrm{ini} \geq \ell \ (\text{lag } \ell \leq n)
+        \end{cases}$
+    \item $\boxed{T_\mathrm{fut} = K}$ prediction horizon or the length of the future trajectory.
+    \item $\boxed{L = T_\mathrm{ini} + T_\mathrm{fut}}$ 
+    total length of the trajectory.
+    \item $\boxed{T \geq (m + 1) \cdot (T_\mathrm{ini} + L) + n - 1}$ number of data points used to construct $\mathcal{H}$ $\begin{cases}
+            \text{For SISO:} & T_\mathrm{min} = 2L + n - 1 \\
+            \text{For MIMO:} & T_\mathrm{min} = (m+1) \cdot L + n - 1
+        \end{cases}$
+    \item $\boxed{\text{col}_\mathcal{H} \geq T - L + 1}$ number of columns
+    \item $\boxed{\text{row}_\mathcal{H} = L \cdot (m + p)}$ number of rows
+    \item $\boxed{\underset{\text{max}}{\operatorname{rank}}(\mathcal{H}) = Lm + n}$ rank maximum (SISO: $L+n = K+2n$)
+\end{itemize}
+\textbullet \; $Lm + n$ lin. ind. columns of $\mathcal{H}$ are chosen from data:
+
+\begin{minipage}{0.43\textwidth}
+    \[
+    \mathcal{H}_{m \cdot L}(\textbf{u}_{\text{data}}) = 
+    \begin{bmatrix}
+    u_0 & u_1 & \cdots & u_{Lm+n-1} \\
+    u_1 & u_2 & \cdots & u_{Lm+n-2} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    u_{Lm-1} & u_{Lm} & \cdots & u_{2Lm+n-2}
+    \end{bmatrix}
+    \]
+\end{minipage}
+\begin{minipage}{0.43\textwidth}
+    \[
+    \mathcal{H}_{p \cdot L}(\textbf{y}_{\text{data}}) = 
+    \begin{bmatrix}
+    y_0 & y_1 & \cdots & y_{Lm+n-1} \\
+    y_1 & y_2 & \cdots & y_{Lm+n-2} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    y_{Lm-1} & y_{Lm}  & \cdots & y_{2Lm+n-2}
+    \end{bmatrix}
+    \]
+\end{minipage}\\ \\
+\textbf{Considerations}
+\begin{itemize}
+    \item \textbf{Persistence of excitation} in the collected data ensures full rank and that all dynamics are represented.
+    \item Adding data to $\mathcal{H}$ ensures enough data in case $n$ is uncertain and all system modes have been exited.
+    \item Ideally, $\mathcal{H}$ stops increasing after $mL+n$ (noiseless case).
+\end{itemize}
+
+\hrule
+
+\subsection{DeePC}
+\begin{minipage}{0.53\textwidth}
+    \begin{align*}
+        \underset{\textbf{u}, \textbf{y}, \textbf{g}, {\color{cyan}\boldsymbol{\sigma}}}{\operatorname{min}} \; & \sum_{k=0}^{K} \|\textbf{y}_k - \textbf{y}_\mathrm{ref} \|^2_Q + \|\textbf{u}_k - \textbf{u}_\mathrm{ref} \|_R^2 + {\color{red}\lambda_g \| \textbf{g} \|_1} + {\color{cyan}\lambda_\sigma \| \boldsymbol{\sigma} \|_1} \\
+        \text{s.t.} \; & \underbrace{\begin{bmatrix}
+        \mathcal{H}_{m \cdot L}(\textbf{u}_{\text{data}}) \\
+        \mathcal{H}_{p \cdot L}(\textbf{y}_{\text{data}})
+        \end{bmatrix}}_{\mathcal{H}} \textbf{g} = \begin{bmatrix}
+        \textbf{u}_{\text{past}} \\
+        \textbf{u}_{\text{fut}} \\
+        \textbf{y}_{\text{past}} + {\color{cyan}\boldsymbol{\sigma}}\\
+        \textbf{y}_{\text{fut}}
+        \end{bmatrix} \\
+        & \textbf{u}_k \in \mathcal{U}_k \quad \forall k \\
+        & \textbf{y}_k \in \mathcal{Y}_k \quad \forall k \\
+    \end{align*}
+\end{minipage}
+\begin{minipage}{0.43\textwidth}
+    Against noise and/or nonlinearities: \\
+    \textbullet \, \textcolor{red}{Regularized}/rank constraint: $\underset{\text{max}}{\operatorname{rank}}(\mathcal{H}) = Lm + n$: \\
+    Prevent overfitting to noise/mismatches \\
+    $\begin{cases} 
+    \uparrow \lambda_g: &\text{fewer trajectories considered}\\ 
+    \text{too high } \lambda_g: &\text{over-regulation}\\ 
+    \downarrow \lambda_g: &\text{more trajectories considered} \\
+    \text{too low } \lambda_g: &\text{irrelevant/incorrect info used}
+    \end{cases}$ \\ \\
+    \textbullet \, \textcolor{cyan}{Slack variable}: slightly relax constraint: \\ noise/mismatches in initial conditions \\
+    $\begin{cases} 
+    \uparrow \lambda_\sigma: &\text{more precise initial state selection}\\ 
+    \text{too high } \lambda_\sigma: &\text{poor tracking: cost dominated by $\lambda_\sigma$}\\ 
+    \downarrow \lambda_\sigma: &\text{more corrections possible} \\
+    \text{too low } \lambda_\sigma: &\text{poor estimation, poor tracking}
+    \end{cases}$ 
+\end{minipage}

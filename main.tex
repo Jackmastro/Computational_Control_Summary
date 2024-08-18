@@ -1,0 +1,158 @@
+\documentclass[a4paper,8pt,fleqn]{article}
+
+%pacchetti
+\newcommand*\Eval[3]{\left.#1\right\rvert_{#2}^{#3}}
+\usepackage[T1]{fontenc}
+\usepackage{titling}
+\usepackage{titlesec}
+\usepackage[utf8]{inputenc}
+\usepackage{empheq}
+%\usepackage{fontawesome}
+\usepackage{physics}
+\usepackage[usenames, dvipsnames]{color}
+\usepackage{pgfplots,filecontents,amsmath}
+\pgfplotsset{compat=1.5}
+\usepackage{xcolor,colortbl}
+\usepackage{listings,tabu}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{mdframed}
+\usepackage{pbox}
+\usepackage{sectsty}
+\definecolor{mygreen}{RGB}{28,172,0} 
+\definecolor{mylilas}{RGB}{170,55,241}
+\lstset{language=Matlab,%
+    %basicstyle=\color{red},
+    breaklines=true,%
+    morekeywords={matlab2tikz},
+    keywordstyle=\color{blue},%
+    morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+    identifierstyle=\color{black},%
+    stringstyle=\color{mylilas},
+    commentstyle=\color{mygreen},%
+    showstringspaces=false,%without this there will be a symbol in the places where there is a space
+    numbers=left,%
+    numberstyle={\tiny \color{black}},% size of the numbers
+    numbersep=9pt, % this defines how far the numbers are from the text
+    emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+    %emph=[2]{word1,word2}, emphstyle=[2]{style},    
+}
+
+\usepackage{chngcntr}
+\usepackage{tcolorbox}
+\usepackage{amssymb, amsfonts}
+\usepackage{tabulary}
+\usepackage{braket}
+\usepackage{pgfplots}
+\usepackage{multicol}
+\usepackage{stackengine}
+\pgfplotsset{width=10cm,compat=1.9}
+\usetikzlibrary{arrows}
+\usepackage{mathtools}
+\usepackage{cancel}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{tabularx}
+\usepackage{cases}
+\usepackage[absolute]{textpos}
+\usepackage[italian,english]{babel}
+
+\usepackage[toc]{multitoc}
+\renewcommand*{\multicolumntoc}{2}
+\setlength{\columnseprule}{0.5pt}
+
+\usepackage{blindtext}
+\usepackage{graphicx}
+\usepackage{soul}
+\usepackage{eqnarray}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\usepackage{lastpage}
+\usepackage{emptypage}
+\usepackage{parcolumns}
+\usepackage{color}
+\usepackage{colortbl}
+\usepackage{caption}
+% \usepackage{enumerate}
+\usepackage{ushort}
+\usepackage{dsfont}
+\usepackage{mathrsfs}
+\usepackage{graphics}
+\usepackage{epstopdf}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{multirow}
+\usepackage{varwidth}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\definecolor{orange-red}{rgb}{1.0, 0.27, 0.0}
+ \geometry{
+ a4paper,
+ left=8mm,
+ right=8mm,
+ top=13mm,
+ bottom=8mm
+ }
+\setlength{\columnseprule}{0.1pt}
+\setlength{\columnsep}{0.05\textwidth} 
+\pagestyle{fancy}
+\fancyhf{}
+\fancyheadoffset{0mm}
+\rhead{}
+\lhead{}
+\chead{Page \thepage\ of \pageref{LastPage}}
+
+\newcommand{\m}{ \underline } 
+\newcommand{\mm}[1]{\underline{\underline{#1}}}
+%comando personalizzato
+\newcommand{\der}{\partial}
+\newcommand{\1}{\frac}
+\newcommand{\dt}{\cfrac{\mathrm{d}}{\mathrm{d}t}}
+\newcommand{\dtm}{\cfrac{\mathrm{d}^-}{\mathrm{d}t}}
+\newcommand{\dtp}{\cfrac{\mathrm{d}^+}{\mathrm{d}t}}
+\newcommand{\cd}{\cdot}
+\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}
+\newcommand{\stabilo}[2][yellow]{\mathchoice%
+  {\colorbox{#1}{$\displaystyle#2$}}%
+  {\colorbox{#1}{$\textstyle#2$}}%
+  {\colorbox{#1}{$\scriptstyle#2$}}%
+  {\colorbox{#1}{$\scriptscriptstyle#2$}}}%
+
+\newcommand{\subto}{\text{s.t.}}
+
+\definecolor{term}{RGB}{0,0,255}
+\newcommand{\term}[1]{\color{term} #1\color{black}}
+
+%---------------------------------------------------
+
+\author{}
+\graphicspath{{images/}}
+\begin{document}
+\begin{hyphenrules}{nohyphenation}
+
+\begin{footnotesize}
+\subsectionfont{\color{blue}} 
+\subsubsectionfont{\color{RoyalBlue}}
+
+\title{Computational Control - FS 2024}
+\author{Aschari Eric, Mastroddi Giacomo, Muttoni Marco}
+\maketitle
+
+\tableofcontents
+\end{footnotesize}
+
+\newpage
+\input{section/ChpIntro}
+\newpage
+\input{section/ChpLQR}
+\newpage
+\input{section/ChpMPC}
+\newpage
+\input{section/ChpDeePC}
+\newpage
+\input{section/ChpRL}
+\end{hyphenrules}
+\end{document}

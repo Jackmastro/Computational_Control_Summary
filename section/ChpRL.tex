@@ -1,0 +1,581 @@
+\begin{mdframed}[backgroundcolor=red!20, frametitlerulewidth=0pt, innertopmargin=-2mm, innerbottommargin=2mm, skipabove=0mm]
+
+\section{Markovian Decision Processes MDP - Optimal Control}
+\end{mdframed}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=green!50!black, colback=green!5!white, title=Pros, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Discretized state space
+        \item Nonlinear dynamics
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=red!50!black, colback=red!5!white, title=Cons, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Model-based in the form of transition probabilities
+        \item Memory to store $\pi$ and $V$
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=gray!50!black, colback=gray!5!white, title=Examples, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Traffic: number of vehicles per queue
+        \item Stochastic processes: arrival of people, weather
+        \item Fastest trajectory
+        \item Games
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{itemize}
+    \item \textbf{\textcolor{cyan}{Model}} in form of probability transition: 
+    $\begin{cases} 
+        P: \mathcal{X} \times \mathcal{U} \times \mathcal{X} \rightarrow [0,1) \\ 
+        {\color{cyan}P^u_{x,x'}} = \mathbb{P}[x'|x,u]
+    \end{cases}$ \quad with set $\mathcal{X}$ of $N$ states and set $\mathcal{U}$ of $M$ inputs.
+    \item \textbf{Markov property}: ${\color{cyan}P^u_{x,x'}}, \; \forall x'$ only depends on $x$ and $u$
+    \item \textbf{Goal}: design a \textcolor{blue}{policy} to select $u \in \mathcal{U}$ on current $x \in \mathcal{X}$: 
+    $\begin{cases} 
+        \text{deterministic} &\mu: \mathcal{X} \rightarrow \mathcal{U} \\ 
+        \text{stochastic } &\pi: \mathcal{X} \times \mathcal{U} \rightarrow [0,1) \quad \pi(x,u) = \mathbb{P}[u|x]
+    \end{cases}$
+    \item \textbf{\textcolor{orange}{Discounted} Bellman Equation (contractive)}: Dynamic programming to be solved via backward recursion:
+    \begin{align*}
+        V^{\textcolor{blue}{\pi}}_{k}(x) = {\color{orange}V^{\pi}(x)} &= \mathbb{E} \left[ \sum_{i=k}^{K = {\color{orange}\infty}} {\color{orange}\gamma^i} c_i \bigg| x_k = x \right] = \mathbb{E} \left[ c_k + \sum_{i=k+1}^{K = {\color{orange}\infty}} {\color{orange}\gamma^i} c_i \bigg| x_k = x \right] = \mathbb{E} \left[ c_k \big| x_k = x \right] + {\color{orange}\gamma} \mathbb{E} \left[ \sum_{i=k+1}^{K = {\color{orange}\infty}} c_i \bigg| x_k = x \right] \\
+        &= \sum_{u} \textcolor{blue}{\pi_k(x, u)} \cdot \mathbb{E} \left[ c_k \big| x_k = x, u_k = u \right] + {\color{orange}\gamma} \sum_{u} \textcolor{blue}{\pi_k(x, u)} \cdot \mathbb{E} \left[ \sum_{i=k+1}^{K = {\color{orange}\infty}} c_i \bigg| x_k = x, u_k = u \right] \\
+        &= \sum_{u} \textcolor{blue}{\pi_k(x, u)} \left[ \underbrace{\mathbb{E} \left[ c_k \big| x_k = x, u_k = u \right]}_{\color{teal}{C^u_x}} + {\color{orange}\gamma} \sum_{x'} {\color{cyan}P^u_{x,x'}} \underbrace{\mathbb{E} \left[ \sum_{i=k+1}^{K = {\color{orange}\infty}} c_i \bigg| x_{k+1} = x' \right]}_{V^{\textcolor{blue}{\pi}}_{k+1}(x') = {\color{orange}V^{\pi}(x')}} \right]
+    \end{align*}
+    $\rightarrow$ \textbf{Consistency equation}: Compute the \textcolor{red}{value function} $V$ of a \textcolor{blue}{policy} $\pi$ based on \textcolor{cyan}{model} $P^u_{x,x'}$ and (immediate observable) \textcolor{teal}{cost} $C_x^u$ (with an estimate of future cost $V^{\pi}(x')$). \\
+    \textcolor{orange}{Infinite time}: Stationary (\textcolor{orange}{no $k$} for $V, \pi$), time invariant $C^u_x$ and $\pi$. \\
+    \phantom{\textcolor{orange}{Infinite time}:} With discount factor $\gamma \in [0,1)$ to ensure finite cost (Bernoulli termination probability).
+    \item \textbf{Bellman Optimality Principle/Equation}: optimal sequential decision problems \\
+    \begin{minipage}[t]{0.48\textwidth}
+        Optimal value/cost:
+        \begin{align*}
+            \textcolor{red}{V^\star_k(x)} &= \min_{\textcolor{blue}{\pi_k}} V^{\textcolor{blue}{\pi}}_{k}(x) \\
+            &= \min_{\textcolor{blue}{\pi_k}} \sum_{u} \textcolor{blue}{\pi_k(x, u)} \left[ {\color{teal}C^u_x} + \sum_{x'} {\color{cyan}P^u_{x,x'}} V^{\textcolor{blue}{\pi}}_{k+1}(x') \right]
+        \end{align*}
+    \end{minipage}
+    \begin{minipage}[t]{0.48\textwidth}
+        Inductively:
+        \[
+        \textcolor{red}{V^\star_k(x)} = \min_{\textcolor{blue}{\pi_k}} \sum_{u} \textcolor{blue}{\pi_k(x, u)} \left[ {\color{teal}C^u_x} + \sum_{x'} {\color{cyan}P^u_{x,x'}} \textcolor{red}{V^\star_{k+1}(x')} \right]
+        \]
+    \end{minipage}\\ \\
+    $\rightarrow$ Linear Program (LP) per $x$ with base case $V_K$. At each step, a $\pi$ is found.\\
+    $\rightarrow$ Finite number of states and actions allows to tackle nonlinear stochastic systems with LP.
+    \item For a \textbf{fixed policy} $\pi$, the MDP reduces to a \textcolor{blue}{\textbf{Markov Chain}} with transition probabilities $P^{\pi}_{x,x'}$ and stationary distribution $\bar{d}(x)$:
+    \begin{equation*}
+        P^{\pi} = \sum_u \mathbb{P}[x' | x, u]\pi(x, u) = \sum_u \pi(x, u) P^{u}_{x,x'}
+    \end{equation*}
+    Stationary point:
+    \begin{equation*}
+        d_{k+1}^{\top} = d_k^{\top} P^{\pi} \quad \implies \quad \boxed{\bar{d}^{\top} = \bar{d}^{\top} P^{\pi}}
+    \end{equation*}
+\end{itemize}
+
+\begin{tcolorbox}[colframe=cyan!50!black, colback=cyan!5!white, title=Policy Iteration]
+\textbf{\textcolor{blue}{Policy Evaluation}}: expensive: $\mathcal{O}(N^3+N^2M)$: inverse $+$ multiply $N \times N$ with $N \times 1$, $M$ times.
+\begin{itemize}
+    \item \textcolor{orange}{Infinite time}, \textbf{finite} MDP with $N$ states $\Rightarrow$ system of $N$ linear equations: \quad $\boxed{V^{\pi} = C^{\pi} + \gamma P^{\pi} V^{\pi}}$ \\
+    with
+    $\begin{cases}
+        C^{\pi}(x) = \sum_{u} \textcolor{blue}{\pi(x, u)} {\color{teal}C^u_x} & \text{expected cost } N \times 1\\
+        P^{\pi} = \sum_{u} \textcolor{blue}{\pi(x, u)} {\color{cyan}P^u_{x,x'}} & \text{expected transition probabilities (row-stochastic) } N \times N
+    \end{cases}$ \\
+    $\stabilo{V^{\pi} = (I - \gamma P^{\pi})^{-1} C^{\pi}}$ \qquad Always invertible (Perron-Frobenious see ATIC) and unique solution.
+\end{itemize}
+
+\textbf{\textcolor{LimeGreen}{Greedy Policy Improvement}}: easy: min over $M$ alternatives, $N$ times.
+\begin{itemize}
+    \item Always improve value ($V^{\pi'}(x) < V^{\pi}(x)$ unless $V^{\pi} = V^\star$) by deviating from current $\pi$ for one step $\textcolor{purple}{\nu}$ and then fall back to $\pi$:
+    \[
+    {\color{blue}\pi'(x, u)} = \arg \min_{\textcolor{purple}{\nu}} \sum_{u} \textcolor{purple}{\nu(x, u)} \left[ {\color{teal}C^u_x} + {\color{orange}\gamma} \sum_{x'} {\color{cyan}P^u_{x,x'}} V^{\color{blue}\pi}(x') \right]
+    \]
+\end{itemize}
+\textbf{Convergence in finite number of steps} because the number of actions and states is finite.
+\end{tcolorbox}
+
+\begin{algorithm}[H]
+\caption{Policy Iteration Algorithm}
+\begin{algorithmic}[1]
+    \State \textbf{Initialize} at a policy guess $\pi \gets \pi_0$
+    \For{each iteration}
+    \State $V \gets (I - \gamma P^{\pi})^{-1} C^{\pi}$ \Comment{Compute the value $V$ associated to the policy $\pi$}
+    \State $\pi(x, u) \gets \arg \min_{\nu} \sum_{u} \nu(x, u) \left[ C^u_x + \gamma \sum_{x'} P^u_{x,x'} V(x') \right]$ \Comment{Greedy update of the policy to update $\pi$}
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\begin{tcolorbox}[colframe=purple!50!black, colback=purple!5!white, title=Value Iteration]
+Fixed point of the Bellman Optimality Equation: cheap: $\mathcal{O}(N^2M)$
+\[
+\textcolor{orange}{V^\star(x)} = \min_{\textcolor{blue}{\pi}} \sum_{u} \textcolor{blue}{\pi(x, u)} \left[ {\color{teal}C^u_x} + {\color{orange}\gamma} \sum_{x'} {\color{cyan}P^u_{x,x'}} \textcolor{orange}{V^\star(x')} \right]
+\]
+\textbf{Convergence asymptotically} (after $\infty$ iterations) with rate $\gamma$ to $V^\star$ (\textbf{contractive}).
+\end{tcolorbox}
+
+\begin{algorithm}[H]
+\caption{Value Iteration Algorithm}
+\begin{algorithmic}[1]
+    \State \textbf{Initialize} at a value guess $V \gets V_0$
+    \For{each iteration}
+    \State $V(x) \gets \min_{\pi} \sum_{u} \pi(x, u) \left[ C^u_x + \gamma \sum_{x'} P^u_{x,x'} V(x') \right]$ \Comment{Apply the Bellman iteration}
+    \EndFor
+    \If{convergence}
+    \State $\pi(x, u) \gets \arg \min_{\nu} \sum_{u} \nu(x, u) \left[ C^u_x + \gamma \sum_{x'} P^u_{x,x'} V(x') \right]$ \Comment{Extract the optimal policy $\pi^\star$ (greedy policy)}
+    \EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\newpage
+
+\begin{mdframed}[backgroundcolor=red!20, frametitlerulewidth=0pt, innertopmargin=-2mm, innerbottommargin=2mm, skipabove=0mm]
+\section{Monte Carlo (Episodic) Learning}
+\end{mdframed}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=green!50!black, colback=green!5!white, title=Pros, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Model-free (based on collected data) \\
+        $\rightarrow$ use simulator (cheap) or controlled environment
+        \item Parametrization via neural networks
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=red!50!black, colback=red!5!white, title=Cons, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Averaging state-action pairs of full episode renders learning slow/inefficient (chess: 1 bad move and all perfect)
+        \item No param.: exp. increasing matrix
+        \item Param. reduces DoF \& not solve Bellman equation
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=gray!50!black, colback=gray!5!white, title=Examples, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Finance, managing portfolio
+        \item Logistic inventory
+        \item Drug development/simulation
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}\\ \\
+\textcolor{red}{Quality function} $Q$ returns the expect future cost of taking action $u$ at state $x$ and apply policy $\pi$ afterwards.
+\begin{itemize}
+    \item \textbf{\textcolor{orange}{Discounted} Bellman Equation}:
+    \begin{alignat*}{2}
+        {\color{orange}V^{\pi}(x)} &= \sum_{u} \textcolor{blue}{\pi(x, u)} \underbrace{\left[ {\color{teal}R^u_x} + {\color{orange}\gamma} \sum_{x'} {\color{cyan}P^u_{x,x'}} {\color{orange}V^{\pi}(x')} \right]}_{{\color{orange}Q^{\pi}(x,u)}} \qquad && N \text{ states}\\
+        {\color{orange}Q^{\pi}(x,u)} &= {\color{teal}R^u_x} + {\color{orange}\gamma} \sum_{x'} {\color{cyan}P^u_{x,x'}} \underbrace{\sum_{u'} \textcolor{blue}{\pi(x', u')} {\color{orange}Q^{\pi}(x', u')}}_{\color{orange}V^{\pi}(x')} = \mathcal{B}(Q) \qquad && N \text{ states} \times M \text{ actions}
+    \end{alignat*}
+    \item \textbf{Bellman Optimality Principle/Equation}:
+    \begin{alignat*}{2}
+        \textcolor{red}{V^\star(x)} &= \min_{\textcolor{blue}{u}} \left[ {\color{teal}R^u_x} + \sum_{x'} {\color{cyan}P^u_{x,x'}} \textcolor{red}{V^\star(x')} \right] = \min_u Q(x,u) \qquad &&
+        \begin{aligned}
+            &\textbf{Deterministic policy } \& \textcolor{orange}{\text{ infinite time}} \\
+            &\rightarrow N \text{ nonlinear equations (min on finite set)}
+        \end{aligned} \\
+        \textcolor{red}{Q^\star(x,u)} &= {\color{teal}R^u_x} + \sum_{x'} {\color{cyan}P^u_{x,x'}} \left( \min_{\textcolor{blue}{u'}} \textcolor{red}{Q^\star(x', u')} \right) \qquad &&
+        \begin{aligned}
+            &\text{Swapped min with $\mathbb{E}$ (easier).}\\ 
+            &\text{Both define implicitly optimal strategy.} 
+        \end{aligned}
+    \end{alignat*}
+\end{itemize}
+
+\begin{tcolorbox}[colframe=cyan!50!black, colback=cyan!5!white, title=Policy Iteration]
+\textbf{\textcolor{blue}{Experimental Policy Evaluation}}: \textbf{No model}, from experiment/simulations (difficult and time consuming)
+\begin{enumerate}
+    \item Collect a (long) episode: \qquad $(x_0, u_0, r_0), \ (x_1, u_1, r_1), \ \ldots \ (x_T, u_T, r_T)$
+    \item Compute the \textbf{empirical cost} \quad $g_0, g_1, \ldots, g_T$
+    \item Interpret $g_k$ as a realization of the return in the \textbf{state-action pair} $x_k, u_k$
+    \begin{align*}
+        Q^{\pi}(x_k, u_k) &\approx g_k = \sum_{i=k}^{T} \gamma^{i-k} r_i \\
+        Q^{\pi}(x, u) &= \frac{\sum_{t=1}^{T} 1[x_t = x, u_t = u] \, g_t}{\sum_{t=1}^{T} 1[x_t = x, u_t = u]} \qquad \text{in case of multiple visits}
+    \end{align*}
+    Ergodicity assumption: all states visited.
+\end{enumerate}
+\textcolor{red}{Note}: Policy evaluated ($Q$ computed) only at the end of the episode, when agent sees final outcome. \\
+\textcolor{red}{Note}: The estimation does not satisfy Bellman equation (unless with $\infty$ data). \\
+\textcolor{red}{Note}: Markovianity of the physical system not exploited to make computation of $Q$ more efficient $\rightarrow$ missing consistency.\\
+
+\textbf{\textcolor{LimeGreen}{Greedy Policy Improvement}}: \textbf{No model} information needed:
+\[
+\stabilo{{\color{blue}\pi'(x, u)} = \arg \min_{\textcolor{purple}{\nu}} \sum_{u} \textcolor{purple}{\nu(x, u)} Q(x,u)}
+\]
+\textcolor{red}{Note}: Can find suboptimal solution: not learnt enough or optimal found and not exploring anymore.\\ \\
+\textbf{Exploration and Exploitation}:\\
+\begin{minipage}[t]{0.58\textwidth}
+    \textcolor{LimeGreen}{$\epsilon$-greedy Policy Improvement}
+    \[
+    \pi(x, u) \gets
+    \begin{cases}
+    \arg \underset{u}{\min} Q(x, u) & \text{with probability } 1 - \epsilon \\
+    \text{Uniform}(\mathcal{U}) & \text{with probability } \epsilon
+    \end{cases}
+    \]
+    Large $\epsilon$ $\rightarrow$ more exploration
+\end{minipage}
+\begin{minipage}[t]{0.38\textwidth}
+    \textcolor{LimeGreen}{Boltzmann Policy Improvement}
+    \[
+    \pi(x, u) \gets \frac{e^{-\beta Q(x, u)}}{\sum_{u} e^{-\beta Q(x, u)}}
+    \]
+    Small $\beta$ $\rightarrow$ more exploration
+\end{minipage}
+\begin{itemize}
+    \item As learning progresses from episode to episode, $\epsilon \rightarrow 0$ or $\beta \rightarrow \infty$ (explore less, exploit more).
+    \item If done “properly”, then with probability 1
+    \begin{itemize}
+        \item each state-action pair is visited \textbf{infinitely often}
+        \item the policy converges to a \textbf{greedy policy}
+    \end{itemize}
+\end{itemize}
+\end{tcolorbox}
+
+\newpage
+\subsection{Parametrization of $Q$}
+\begin{itemize}
+    \item In theory: memorize $Q$ in table $\rightarrow$ computationally infeasible (many state-action), intractable (continuous state-action).
+    \item In practice: $\boxed{Q_\theta(x,u) = \phi^\top\theta = \Phi\theta}$ 
+    $\begin{cases}
+        \Phi \in \mathbb{R}^{NM \times d} & \text{basis functions} \\
+        \theta \in \mathbb{R}^d &
+    \end{cases}$
+\end{itemize}
+\begin{minipage}[t]{0.48\textwidth}
+    \textbf{\textcolor{LimeGreen}{Advantages}}
+    \begin{itemize}
+        \item Smaller memory ($d$ instead of $NM$)
+        \item Problem size is (apparently) independent from $N \rightarrow$ continuous state space
+        \item A smart parametrization may allow to "guess" the Q function in state-action pairs that have not been observed (interpolation/extrapolation)
+        \item Prior information on the problem may suggest a smart parametrization
+    \end{itemize}
+\end{minipage}
+\begin{minipage}[t]{0.48\textwidth}
+    \textbf{\textcolor{red}{Disadvantages}}
+    \begin{itemize}
+        \item Reduced degrees of freedom
+        \item The solution to the Bellman equation for a given policy $\pi$ may not belong to $\mathcal{Q} = \{ Q^\theta, \theta \in \mathbb{R}^d \}$ (fixed point) because the solution is not of the same form.
+        \item Possible consequences on
+        \begin{itemize}
+            \item convergence of policy iterations
+            \item optimality of the limit
+        \end{itemize}
+        \item Computing $\theta$ that best approximates the data collected from an episode may be computationally expensive
+    \end{itemize}
+\end{minipage}\\
+\begin{itemize}
+    \item \textbf{Q-Bellman Equation} $\mathcal{B}(Q)$:
+    \[
+    \mathcal{B}(Q) = {\color{teal}R^u_x} + {\color{orange}\gamma} \underbrace{\sum_{x'} {\color{cyan}P^u_{x,x'}} \sum_{u'} \textcolor{blue}{\pi(x', u')}}_{T^{\pi}} {\color{orange}Q^{\pi}(x', u')} = R + \gamma T^\pi Q \quad \begin{cases}
+        Q \in \mathbb{R}^{NM} & \\
+        R \in \mathbb{R}^{NM} & \\
+        T^{\pi} \in \mathbb{R}^{NM \times NM} &
+    \end{cases}
+    \]
+    \item \textbf{Projected Bellman Equation}: \textbf{Model-free} best approximant:
+    \[
+    Q_\theta = \underset{Q_\theta}{\operatorname{arg min}} \norm{Q_\theta - \mathcal{B(Q)}}_\rho^2 \qquad \text{with solution} \qquad \boxed{{\color{Bittersweet}\Phi^{\top} \rho \Phi} \theta = \gamma {\color{RoyalBlue}\Phi^{\top} \rho T^{\pi} \Phi} \theta + {\color{JungleGreen}\Phi^{\top} \rho R}} \qquad \text{System of } d \text{ linear equations}
+    \]
+    For every sample $x_k, u_k, r_k$ of the episode and their successive sample $x_{k+1}, u_{k+1}$, we construct \\
+    \begin{minipage}{0.48\textwidth}
+        \begin{itemize}
+            \item $\color{Bittersweet}\phi(x_k, u_k) \phi(x_k, u_k)^\top$
+            \item $\color{RoyalBlue}\phi(x_k, u_k) \phi(x_{k+1}, u_{k+1})^\top$
+            \item $\color{JungleGreen}\phi(x_k, u_k) r_k$
+        \end{itemize}
+    \end{minipage}
+    \begin{minipage}{0.48\textwidth}
+        \[
+        \phi(x_k, u_k) = \begin{bmatrix}
+        \phi_1(x_k, u_k) \\
+        \vdots \\
+        \phi_d(x_k, u_k)
+        \end{bmatrix}
+        \]
+    \end{minipage}
+    
+    The empirical average of these terms corresponds to the matrices above, where $\rho$ encodes the frequency of each state-input pair in the episode.
+    
+\end{itemize}
+
+\newpage
+
+\begin{mdframed}[backgroundcolor=red!20, frametitlerulewidth=0pt, innertopmargin=-2mm, innerbottommargin=2mm, skipabove=0mm]
+\section{(Online) Reinforcement Learning RL}
+\end{mdframed}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=green!50!black, colback=green!5!white, title=Pros, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item (almost) model-free
+        \item Learn online during control \\
+        $\rightarrow$ adaptive control
+        \item Better realization of which action causes reward (Monte Carlo averages a full episode)
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=red!50!black, colback=red!5!white, title=Cons, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Challenging learn and control (update $\pi$ and $Q$ at the same time)
+        \item Few guarantees: suboptimal
+        \item Parametrization: instabilities
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=gray!50!black, colback=gray!5!white, title=Examples, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item AI for games
+        \item Autonomous vehicle
+        \item Content recommendation (Netflix)
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+
+\subsection{Temporal Difference TD}
+\textbf{Policy evaluation} method which updates $Q$ based on Bellman's Principle. TD-learning iteratively adjusts $Q(x)$ to satisfy the equation $Q(x) = \mathbb{E}[r_k + \gamma Q(x')]$
+% Idea: There is a finite difference in time (tunable parameter) between action and expected reward. \\
+% Difference with Monte Carlo learning: The right action has happened in the past leading to the reward.
+\begin{itemize}
+    \item Assuming Bellman Equation satisfied with $\mathbb{E}[e_k] = 0$ and \textbf{TD error} \quad $\boxed{e_k = r_k + \gamma Q(x_{k+1}, u_{k+1}) - Q(x_k, u_k)}$\\
+    \textcolor{red}{Note}: $\mathbb{E}$ needed because system is stochastic.
+    \item \textcolor{BurntOrange}{\textbf{Stochastic Approximation}}: \\
+    $\boxed{q_{k+1} \gets q_k + \alpha_k e(q_k)}$ converges to $q^\star$ of $\mathbb{E}[e(q)] = 0$ if
+    $\begin{cases}
+        e(q) \text{ is bounded} \\
+        \mathbb{E}[e(q)] \text{ is non-decreasing in } q \text{ (and increasing at } q^\star \text{)} \\
+        \text{the sequence } \alpha_k \text{ satisfies } \sum_{k=0}^{\infty} \alpha_k = \infty, \ \sum_{k=0}^{\infty} \alpha_k^2 < \infty
+    \end{cases}$
+\end{itemize}
+\textbf{Policy improvement} step happens in a larger algorithm like \textbf{SARSA} or \textbf{Q-Learning}.
+
+\subsubsection{SARSA (State-Action-Reward-State-Action)}
+\begin{itemize}
+    \item Gradient-free,
+    \item \textbf{On-policy}: it learns the value of the policy being followed, including exploration: uses $u_{k+1}$.
+\end{itemize}
+
+\begin{tcolorbox}[colframe=cyan!50!black, colback=cyan!5!white, title=SARSA (conceptually similar to Policy Iteration)]
+\textbf{Simultaneously} two operations (instead of alternating as before):
+\begin{enumerate}
+    \item \textcolor{blue}{Policy Evaluation} via \textcolor{BurntOrange}{stochastic approximation} of the \textbf{Bellman Equation} $(x_k, u_k, r_k, x_{k+1}, u_{k+1})$
+    \begin{align*}
+        \stabilo{Q(x_k, u_k)} &\stabilo{\gets Q(x_k, u_k) + \alpha_k \big( \underbrace{r_k + \gamma Q(x_{k+1}, u_{k+1}) - Q(x_k, u_k)}_{e_k} \big)} \\
+        &\stabilo{= (1 - \alpha_k) Q(x_k, u_k) + \alpha_k \big( r_k + \gamma Q(x_{k+1}, u_{k+1}) \big)}
+    \end{align*}
+    \item \textcolor{LimeGreen}{Policy Improvement}: improves the followed policy (could be $\epsilon$-greedy) naturally.
+\end{enumerate}
+As learning progresses $\epsilon \rightarrow 0$ or $\beta \rightarrow \infty$ (explore less, exploit more).
+\end{tcolorbox}
+
+\subsubsection{Q-Learning}
+\begin{itemize}
+    \item Gradient-free, 
+    \item \textbf{Off-policy}: it learns the value of the optimal policy independently of the agent's actions (behavior policy): no $u_{k+1}$.
+\end{itemize}
+
+\begin{minipage}{0.43\textwidth}
+    Bellman Optimality Principle
+    \[
+    Q^\star(x, u) = R^u_x + \gamma \sum_{x'} P^u_{x,x'} \left( \min_{u'} Q^\star(x', u') \right)
+    \] 
+\end{minipage}
+\begin{minipage}{0.53\textwidth}
+    Individual realization (in $\mathbb{E}$ equal to Bellman Optimality Principle)
+    \[
+    Q^\star(x_k, u_k) = r_k + \gamma \min_{u_{k+1}} Q^\star(x_{k+1}, u_{k+1})
+    \]
+\end{minipage}
+
+\begin{itemize}
+    \item During Learning: As the Q-values are updated after each action, the greedy policy (optimal policy) is improved incrementally. You don’t have to explicitly apply policy improvement after every Q-value update because Q-learning inherently optimizes the Q-values with respect to the best future actions.
+    \item After Learning: Once the Q-learning process has converged (i.e., the Q-values have stabilized), you can extract the final optimal policy by simply selecting the action that minimizes the Q-value in each state.
+\end{itemize}
+
+\begin{tcolorbox}[colframe=purple!50!black, colback=purple!5!white, title=Q-Learning (conceptually similar to Value Iteration)]
+\textbf{Free} two operations (instead of alternating as before):
+\begin{enumerate}
+    \item \textcolor{blue}{Policy Evaluation} via \textcolor{BurntOrange}{stochastic approximation} of the \textbf{Bellman Optimality Equation} $(x_k, u_k, r_k, x_{k+1})$
+    \begin{align*}
+        \stabilo{Q(x_k, u_k)} &\stabilo{\gets Q(x_k, u_k) + \alpha_k \left( r_k + \gamma \min_{\color{blue}u} Q(x_{k+1}, {\color{blue}u}) - Q(x_k, u_k) \right)} \\
+        &\stabilo{= (1 - \alpha_k) Q(x_k, u_k) + \alpha_k \big( r_k + \gamma \min_{\color{blue}u} Q(x_{k+1}, {\color{blue}u}) \big)}
+    \end{align*}
+    
+    \item \textcolor{LimeGreen}{Policy Improvement}: learns the optimal (greedy) policy independent of the policy being followed during exploration (implicitly).
+\end{enumerate}
+\begin{itemize}
+    \item Forward dynamic programming
+    % \item Convergence to $Q^\star$ guaranteed if 
+    % $\begin{cases}
+    %     \text{non-summability/square-summability assumption on } \alpha_k \\
+    %     \text{full state-action space exploration} \\
+    %     \text{stationary environment}
+    % \end{cases}$
+\end{itemize}
+\textcolor{red}{Note}: Q-values are updated to reflect the best possible actions (conceptually similar to value iteration).
+\end{tcolorbox}
+
+\subsubsection{Parametrized Q-Learning as Stochastic Gradient Descent}
+As $Q$ is huge (scalability issue) $\rightarrow$ approximate it $\rightarrow$ Bellman Optimality Principle (most likely) does not have a solution. \\ \\
+\begin{minipage}{0.48\textwidth}
+    Individual realization:
+    \[
+    Q_\theta^\star = \phi^\top (x_k, u_k) \theta^\star = \underbrace{r_k + \gamma \min_{u_{k+1}} \phi^\top(x_{k+1}, u_{k+1}) \theta_k}_{Q^+}
+    \]
+\end{minipage}
+\begin{minipage}{0.48\textwidth}
+    Loss function:
+    \[
+    \min_{\theta} \underbrace{\frac{1}{2} \left( \phi^\top (x, u) \theta - Q^+ \right)^2}_{L(\theta)}
+    \]
+\end{minipage} \\ \\
+A simple iteration that converges to this minimum is the \textbf{gradient descent}:
+\begin{align*}
+    \theta_{i+1} &= \theta_i - \alpha_i \nabla L(\theta_i) \\
+    &= \theta_i - \alpha_i \Bigg( \phi^\top (x_k, u_k) \theta_i - \Big( \underbrace{r_k + \gamma \min_{\color{blue}u} \phi^\top (x_{k+1}, {\color{blue}u}) \theta_i}_{Q^+} \Big) \Bigg) \phi (x_k, u_k)
+\end{align*}
+
+\newpage
+    
+\subsection{Policy Gradient}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=green!50!black, colback=green!5!white, title=Pros, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Model-free: no $V$ or $Q$ to learn optimal $\pi$
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=red!50!black, colback=red!5!white, title=Cons, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Few guarantees: suboptimal
+        \item Parametrization: instability
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=gray!50!black, colback=gray!5!white, title=Examples, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Natural language processing
+        \item Real time game strategies
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}\\ \\
+Both Monte Carlo and Temporal Difference methods work on state representability (i.e. not completely model free). Policy Gradient methods learn the optimal policy $\pi$ without learning $V$ or $Q$.
+\begin{itemize}
+    \item Consider a \textbf{trajectory} $\tau$ of the system (assuming $x_0$ fixed over many episodes): \qquad $\tau = (x_0, u_0, x_1, u_1, \ldots, x_T, u_T)$
+    \item Associated reward/cost: \qquad $R(\tau) = \sum_{t=0}^{T} \gamma^t r_t$
+    \item Stochastic policy parametrized in $\theta$: \qquad $\pi_{\theta}(x, u)$
+    \item Probability of trajectory $\tau$ happening when using policy $\pi_\theta$: \qquad $\mathbb{P}_{\theta}(\tau) = \prod_{t=0}^{T} \underbrace{\mathbb{P}(x_{t+1} \mid x_t, u_t)}_{\text{transition probabilities}} \underbrace{\pi_{\theta}(u_t, x_t)}_{\text{policy}}$
+\end{itemize}
+\textbf{Goal}: minimize the expected cost: \qquad $J(\theta) := \mathbb{E}_{\tau \sim \pi_{\theta}} [R(\tau)] = \sum_{\tau} \mathbb{P}_{\theta}(\tau) R(\tau)$
+\[
+\nabla J(\theta) = \mathbb{E}_{\tau \sim \pi_{\theta}} \left[ \nabla \log \mathbb{P}_{\theta}(\tau) R(\tau) \right]
+\]
+where
+\[
+\nabla \log \mathbb{P}_{\theta}(\tau) = \sum_{t=0}^{T} \nabla \log \pi_{\theta}(u_t, x_t)
+\]
+only depends on the parametrized policy! $\rightarrow$ gradient descent using only rewards and policy.
+\begin{algorithm}[H]
+\caption{Policy Gradient Algorithm}
+\begin{algorithmic}[1]
+    \State Generate $\tau$ via $\pi_{\theta}$
+    \State Compute $R(\tau)$
+    \State Update $\theta \gets \theta - \alpha R(\tau) \sum_{t=0}^{T} \nabla \log \pi_{\theta}(u_t, x_t)$
+\end{algorithmic}
+\end{algorithm}
+
+\newpage
+
+\subsection*{Example: SARSA vs. Q-Learning}
+
+\textbf{Environment}: A 3x3 grid where the agent starts at position (1, 1) and the goal is to reach position (3, 3).
+
+\textbf{Actions}: \textit{Up, Down, Left, Right}
+
+\textbf{Rewards}:
+\begin{itemize}
+    \item Reaching the goal (3, 3): \(+10\)
+    \item Every other step: \(-1\) (to encourage reaching the goal quickly).
+\end{itemize}
+
+\textbf{Discount Factor}: \( \gamma = 0.9 \)
+
+\textbf{Learning Rate}: \( \alpha = 0.1 \)
+
+\subsubsection*{SARSA Example (On-Policy)}
+
+1. \textbf{Initialize Q-values}: Start with all Q-values \( Q(x, u) \) initialized to 0.
+
+2. \textbf{Episode Start}: Assume the agent is at position (1, 1).
+   \begin{itemize}
+       \item \textbf{State}: \( x_1 = (1, 1) \)
+       \item \textbf{Action}: Use \(\epsilon\)-greedy to select an action. Suppose \(\epsilon = 0.1\), meaning the agent has a 90\% chance of choosing the action with the highest Q-value and a 10\% chance of exploring. 
+       \item Initially, all Q-values are equal, so assume the agent explores and selects \( u_1 = \text{Right} \).
+   \end{itemize}
+
+3. \textbf{Step 1}:
+   \begin{itemize}
+       \item \textbf{Take Action}: The agent moves to position \( x_2 = (1, 2) \).
+       \item \textbf{Reward}: The agent receives a reward \( r_1 = -1 \) (for moving without reaching the goal).
+       \item \textbf{Next Action}: Again, use \(\epsilon\)-greedy to select the next action. Suppose the agent selects \( u_2 = \text{Down} \).
+       \item \textbf{Update Q-value}: Update \( Q(x_1, u_1) \) using the SARSA update rule:
+       \[
+       Q(x_1, u_1) \leftarrow Q(x_1, u_1) + \alpha \left[ r_1 + \gamma Q(x_2, u_2) - Q(x_1, u_1) \right]
+       \]
+       \[
+       Q((1, 1), \text{Right}) \leftarrow 0 + 0.1 \left[ -1 + 0.9 \cdot Q((1, 2), \text{Down}) - 0 \right]
+       \]
+       Since \( Q((1, 2), \text{Down}) = 0 \) initially, the update is:
+       \[
+       Q((1, 1), \text{Right}) \leftarrow -0.1
+       \]
+   \end{itemize}
+
+4. \textbf{Step 2}:
+   \begin{itemize}
+       \item \textbf{State}: \( x_2 = (1, 2) \)
+       \item \textbf{Action}: The agent takes the action \( u_2 = \text{Down} \).
+       \item \textbf{Next State}: The agent moves to position \( x_3 = (2, 2) \).
+       \item \textbf{Next Action}: Select \( u_3 = \text{Right} \) using \(\epsilon\)-greedy.
+       \item \textbf{Update Q-value}: Update \( Q((1, 2), \text{Down}) \) using the SARSA update rule.
+   \end{itemize}
+
+\subsubsection*{Q-Learning Example (Off-Policy)}
+
+1. \textbf{Initialize Q-values}: Start with all Q-values \( Q(x, u) \) initialized to 0.
+
+2. \textbf{Episode Start}: Assume the agent is at position (1, 1).
+   \begin{itemize}
+       \item \textbf{State}: \( x_1 = (1, 1) \)
+       \item \textbf{Action}: Use \(\epsilon\)-greedy to select an action. Suppose the agent selects \( u_1 = \text{Right} \).
+   \end{itemize}
+
+3. \textbf{Step 1}:
+   \begin{itemize}
+       \item \textbf{Take Action}: The agent moves to position \( x_2 = (1, 2) \).
+       \item \textbf{Reward}: The agent receives a reward \( r_1 = -1 \).
+       \item \textbf{Next Action (for exploration)}: The agent might explore and choose \( u_2 = \text{Down} \) using \(\epsilon\)-greedy.
+       \item \textbf{Update Q-value}: Instead of using \( Q(x_2, u_2) \) (as in SARSA), Q-learning updates \( Q(x_1, u_1) \) using the maximum Q-value of the next state:
+       \[
+       Q(x_1, u_1) \leftarrow Q(x_1, u_1) + \alpha \left[ r_1 + \gamma \max_{u} Q(x_2, u) - Q(x_1, u_1) \right]
+       \]
+       \[
+       Q((1, 1), \text{Right}) \leftarrow 0 + 0.1 \left[ -1 + 0.9 \cdot \max_{u} Q((1, 2), u) - 0 \right]
+       \]
+       Since all Q-values are initially 0, the update is:
+       \[
+       Q((1, 1), \text{Right}) \leftarrow -0.1
+       \]
+   \end{itemize}
+
+4. \textbf{Step 2}:
+   \begin{itemize}
+       \item \textbf{State}: \( x_2 = (1, 2) \)
+       \item \textbf{Action}: The agent takes the action \( u_2 = \text{Down} \).
+       \item \textbf{Next State}: The agent moves to position \( x_3 = (2, 2) \).
+       \item \textbf{Next Action (for update)}: Regardless of the action actually taken, Q-learning uses the action that maximizes the Q-value in state \( x_3 \) to update \( Q((1, 2), \text{Down}) \).
+   \end{itemize}

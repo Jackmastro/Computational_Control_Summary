@@ -1,0 +1,61 @@
+\begin{mdframed}[backgroundcolor=red!20, frametitlerulewidth=0pt, innertopmargin=-2mm, innerbottommargin=2mm, skipabove=0mm]
+
+\section{Other Controllers}
+\end{mdframed}
+
+\subsection{PID}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=green!50!black, colback=green!5!white, title=Pros, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Simple
+        \item Known tuning methods
+        \item Low computations
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=red!50!black, colback=red!5!white, title=Cons, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Reactive response
+        \item SISO (and some MIMO with cascaded)
+        \item Nonlinear
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[colframe=gray!50!black, colback=gray!5!white, title=Examples, left=0.5mm, right=0.5mm]
+    \begin{itemize}[leftmargin=*]
+        \item Reference tracking
+        \item Position control drones
+        \item Flow, temperature heating, chemical
+    \end{itemize}
+    \end{tcolorbox}
+\end{minipage}
+
+\subsection{Frequency Domain Design}
+\begin{minipage}{0.33\textwidth}
+\begin{tcolorbox}[colframe=green!50!black, colback=green!5!white, title=Pros, left=0.5mm, right=0.5mm]
+\begin{itemize}[leftmargin=*]
+\item Stability analysis (e.g., Nyquist, Bode plots)
+\item Robustness to model uncertainties
+\item Effective in handling disturbances
+\end{itemize}
+\end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+\begin{tcolorbox}[colframe=red!50!black, colback=red!5!white, title=Cons, left=0.5mm, right=0.5mm]
+\begin{itemize}[leftmargin=*]
+\item Complex design process
+\item Limited applicability for nonlinear systems: requires linear models
+\end{itemize}
+\end{tcolorbox}
+\end{minipage}
+\begin{minipage}{0.33\textwidth}
+\begin{tcolorbox}[colframe=gray!50!black, colback=gray!5!white, title=Examples, left=0.5mm, right=0.5mm]
+\begin{itemize}[leftmargin=*]
+\item Control of power systems (stability)
+\item Vibration analysis in mechanical systems
+\item Filter design in communication systems
+\end{itemize}
+\end{tcolorbox}
+\end{minipage}
